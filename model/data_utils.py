@@ -4,9 +4,11 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.compose import ColumnTransformer
 import torch
 from torch.utils.data import TensorDataset, DataLoader
+import pickle
+import os
 
 def load_data():
-    df = pd.read_csv('diabetes_prediction_dataset.csv')
+    df = pd.read_csv('model/diabetes_prediction_dataset.csv')
 
     df = pd.get_dummies(df, columns=['gender'])
 
@@ -39,6 +41,11 @@ def load_data():
 
     X_train = cf.fit_transform(X_train)
     X_test = cf.transform(X_test)
+    
+    # Save the fitted ColumnTransformer with scaler using pickle
+    os.makedirs('model/saved', exist_ok=True)
+    with open('model/saved/column_transformer.pkl', 'wb') as f:
+        pickle.dump(cf, f)
 
     # Convert numpy arrays to PyTorch tensors
     X_train_tensor = torch.FloatTensor(X_train)

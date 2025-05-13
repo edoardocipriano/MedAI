@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_curve, auc
 import seaborn as sns
-from model.data_utils import load_data
-from model.model import create_model
+from data_utils import load_data
+from model import create_model
+import os
 
-def train_model(model, train_loader, test_loader, criterion, optimizer, num_epochs=10):
+def train_model(model, train_loader, test_loader, criterion, optimizer, scheduler=None, num_epochs=10, threshold=0.35):
     """Train the model and evaluate after each epoch."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -18,6 +19,8 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
     test_losses = []
     train_accuracies = []
     test_accuracies = []
+    best_recall = 0.0
+    best_model_state = None
     
     for epoch in range(num_epochs):
         # Training phase
@@ -43,7 +46,7 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
             
             # Statistics
             running_loss += loss.item() * inputs.size(0)
-            predicted = (outputs > 0.5).float()
+            predicted = (outputs > threshold).float()
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             
@@ -55,15 +58,31 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
         train_accuracies.append(epoch_acc)
         
         # Evaluation phase
-        test_loss, test_acc = evaluate_model(model, test_loader, criterion, device)
+        test_loss, test_acc, test_recall = evaluate_model(model, test_loader, criterion, device, threshold)
         test_losses.append(test_loss)
         test_accuracies.append(test_acc)
         
-        print(f"Epoch {epoch+1}/{num_epochs}: Train Loss: {epoch_loss:.4f}, Train Acc: {epoch_acc:.4f}, Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}")
+        # Update learning rate if scheduler is provided
+        if scheduler is not None:
+            if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+                scheduler.step(test_recall)  # Pass the recall metric to the scheduler
+            else:
+                scheduler.step()
+        
+        # Save best model based on recall
+        if test_recall > best_recall:
+            best_recall = test_recall
+            best_model_state = model.state_dict().copy()
+            
+        print(f"Epoch {epoch+1}/{num_epochs}: Train Loss: {epoch_loss:.4f}, Train Acc: {epoch_acc:.4f}, Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}, Test Recall: {test_recall:.4f}")
     
+    # Load best model state if it was saved
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
+        
     return model, train_losses, test_losses, train_accuracies, test_accuracies
 
-def evaluate_model(model, data_loader, criterion, device):
+def evaluate_model(model, data_loader, criterion, device, threshold=0.65):
     """Evaluate the model on the given data loader."""
     model.eval()
     running_loss = 0.0
@@ -77,17 +96,18 @@ def evaluate_model(model, data_loader, criterion, device):
             loss = criterion(outputs, labels)
             
             running_loss += loss.item() * inputs.size(0)
-            predicted = (outputs > 0.5).float()
+            predicted = (outputs > threshold).float()
             
             all_preds.extend(predicted.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
     
     total_loss = running_loss / len(data_loader.dataset)
     accuracy = accuracy_score(all_labels, all_preds)
+    recall = recall_score([l[0] for l in all_labels], [p[0] for p in all_preds], zero_division=0)
     
-    return total_loss, accuracy
+    return total_loss, accuracy, recall
 
-def get_metrics(model, data_loader):
+def get_metrics(model, data_loader, threshold=0.65):
     """Calculate various metrics for model evaluation."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
@@ -101,7 +121,7 @@ def get_metrics(model, data_loader):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             probs = torch.sigmoid(outputs)
-            predicted = (probs > 0.5).float()
+            predicted = (probs > threshold).float()
             
             all_probs.extend(probs.cpu().numpy())
             all_preds.extend(predicted.cpu().numpy())
@@ -192,23 +212,39 @@ def main():
     inputs, _ = next(iter(train_loader))
     input_size = inputs.shape[1]
     
+    # Calculate positive weight for loss function (inverse of class frequency)
+    # The dataset has 91.5% class 0 and 8.5% class 1, so weight is 91.5/8.5 ≈ 10.76
+    # Reduce the weight slightly to decrease false positives
+    pos_weight = torch.tensor([6.0])  # Further reduced from 8.0 to 6.0 to decrease false positives
+    
     # Create model
     model = create_model(input_size)
     
-    # Define loss function and optimizer
-    criterion = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # Define loss function with class weighting to improve recall but avoid too many false positives
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     
-    # Train model
+    # Optimizer with better parameters
+    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-5)
+    
+    # Learning rate scheduler for better convergence
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='max', factor=0.5, patience=3, verbose=True
+    )
+    
+    # Define prediction threshold (higher threshold decreases false positives)
+    prediction_threshold = 0.65  # Higher threshold to reduce false positives
+    
+    # Train model with more epochs
     print("Starting training...")
     model, train_losses, test_losses, train_accuracies, test_accuracies = train_model(
-        model, train_loader, test_loader, criterion, optimizer, num_epochs=20)
+        model, train_loader, test_loader, criterion, optimizer, 
+        scheduler=scheduler, num_epochs=30, threshold=prediction_threshold)
     
     # Plot training history
     plot_training_history(train_losses, test_losses, train_accuracies, test_accuracies)
     
-    # Evaluate model and get metrics
-    metrics = get_metrics(model, test_loader)
+    # Evaluate model and get metrics with the threshold
+    metrics = get_metrics(model, test_loader, threshold=prediction_threshold)
     
     # Print metrics
     print("\nFinal Evaluation Metrics:")
@@ -223,9 +259,12 @@ def main():
     # Plot ROC curve
     plot_roc_curve(metrics['labels'], metrics['probabilities'])
     
+    # Create directory for saved models if it doesn't exist
+    os.makedirs('model/saved', exist_ok=True)
+    
     # Save model
-    torch.save(model.state_dict(), 'diabetes_model.pth')
-    print("Model saved to diabetes_model.pth")
+    torch.save(model.state_dict(), 'model/diabetes_model.pth')
+    print("Model saved to model/diabetes_model.pth")
 
 if __name__ == "__main__":
     main()
