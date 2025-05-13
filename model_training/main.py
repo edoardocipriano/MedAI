@@ -263,8 +263,8 @@ def main():
     os.makedirs('model/saved', exist_ok=True)
     
     # Save model
-    torch.save(model.state_dict(), 'model/diabetes_model.pth')
-    print("Model saved to model/diabetes_model.pth")
+    torch.save(model.state_dict(), 'model_training/diabetes_model.pth')
+    print("Model saved to model_training/diabetes_model.pth")
 
 if __name__ == "__main__":
     main()

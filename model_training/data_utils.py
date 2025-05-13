@@ -8,7 +8,7 @@ import pickle
 import os
 
 def load_data():
-    df = pd.read_csv('model/diabetes_prediction_dataset.csv')
+    df = pd.read_csv('model_training/diabetes_prediction_dataset.csv')
 
     df = pd.get_dummies(df, columns=['gender'])
 
@@ -43,8 +43,8 @@ def load_data():
     X_test = cf.transform(X_test)
     
     # Save the fitted ColumnTransformer with scaler using pickle
-    os.makedirs('model/saved', exist_ok=True)
-    with open('model/saved/column_transformer.pkl', 'wb') as f:
+    os.makedirs('model_training/saved', exist_ok=True)
+    with open('model_training/saved/column_transformer.pkl', 'wb') as f:
         pickle.dump(cf, f)
 
     # Convert numpy arrays to PyTorch tensors

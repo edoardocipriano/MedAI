@@ -1,33 +1,19 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
 import torch
 import numpy as np
 import sys
 import os
 import pickle
+from schemas import InputData, OutputData
 
 # Add parent directory to path to allow importing from model directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from model.model import create_model
+from model_training.model import create_model
 from sklearn.preprocessing import MinMaxScaler
 import uvicorn
 
 app = FastAPI()
-
-class InputData(BaseModel):
-    age: float = Field(..., description="Age of the patient")
-    gender: str = Field(..., description="Gender of the patient (Female, Male, or Other)")
-    hypertension: int = Field(..., description="Hypertension status (0 or 1)")
-    heart_disease: int = Field(..., description="Heart disease status (0 or 1)")
-    smoking_history: str = Field(..., description="Smoking history (No Info, never, former, not current, current, ever)")
-    bmi: float = Field(..., description="Body mass index")
-    hba1c_level: float = Field(..., description="HbA1c level")
-    blood_glucose_level: float = Field(..., description="Blood glucose level")
-
-class OutputData(BaseModel):
-    diabetes: str = Field(..., description="Diabetes prediction (Yes or No)")
-    probability: float = Field(..., description="Probability of diabetes")
 
 def preprocess_input(input_data: InputData):
     # Convert smoking_history to numerical value
@@ -62,7 +48,7 @@ def preprocess_input(input_data: InputData):
     
     # Load and use the same transformer with scaler that was used during training
     try:
-        with open('model/saved/column_transformer.pkl', 'rb') as f:
+        with open('model_training/saved/column_transformer.pkl', 'rb') as f:
             column_transformer = pickle.load(f)
         # Apply the same transformation as during training
         scaled_features = column_transformer.transform(features)
@@ -97,10 +83,10 @@ async def predict(input_data: InputData):
     # Load the trained model
     model = create_model(input_size=10)
     try:
-        model.load_state_dict(torch.load('model/diabetes_model.pth', map_location=torch.device('cpu'), weights_only=True))
+        model.load_state_dict(torch.load('model_training/diabetes_model.pth', map_location=torch.device('cpu'), weights_only=True))
     except:
         print("Warning: Using default model path failed. Trying alternative path.")
-        model.load_state_dict(torch.load('model/saved/diabetes_model.pth', map_location=torch.device('cpu'), weights_only=True))
+        model.load_state_dict(torch.load('model_training/saved/diabetes_model.pth', map_location=torch.device('cpu'), weights_only=True))
     model.eval()
     
     # Preprocess the input data
