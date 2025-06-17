@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dettagli Paziente - MedAI</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="container nav-container">
+            <a href="/dashboard" class="nav-brand">MedAI</a>
+            <ul class="nav-links">
+                <li><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li><a th:href="@{/patients}">Pazienti</a></li>
+                <li><a th:href="@{/patients/new}">Nuovo Paziente</a></li>
+                <li><a th:href="@{/logout}">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container" style="padding-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Dettagli Paziente</h1>
+            <a th:href="@{/patients}" class="btn btn-secondary">Torna alla Lista</a>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Informazioni Personali</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div>
+                    <strong>Nome:</strong> <span th:text="${patient.firstName}"></span>
+                </div>
+                <div>
+                    <strong>Cognome:</strong> <span th:text="${patient.lastName}"></span>
+                </div>
+                <div>
+                    <strong>Data di Nascita:</strong> 
+                    <span th:text="${#temporals.format(patient.dateOfBirth, 'dd/MM/yyyy')}"></span>
+                </div>
+                <div>
+                    <strong>Genere:</strong> <span th:text="${patient.gender}"></span>
+                </div>
+                <div>
+                    <strong>Codice Fiscale:</strong> <span th:text="${patient.fiscalCode}"></span>
+                </div>
+                <div>
+                    <strong>Registrato il:</strong> 
+                    <span th:text="${#temporals.format(patient.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Cartelle Cliniche</h2>
+                <a th:href="@{/patients/{id}/medical-record/new(id=${patient.id})}" 
+                   class="btn btn-primary btn-sm">Nuova Cartella</a>
+            </div>
+            
+            <div th:if="${#lists.isEmpty(medicalRecords)}">
+                <p style="color: #6b7280;">Nessuna cartella clinica registrata.</p>
+            </div>
+            
+            <div th:each="record : ${medicalRecords}" class="card" style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h4>Cartella del <span th:text="${#temporals.format(record.createdAt, 'dd/MM/yyyy HH:mm')}"></span></h4>
+                        
+                        <div style="margin-top: 1rem;">
+                            <strong>Sintomi:</strong>
+                            <p th:text="${record.symptoms}" style="margin-top: 0.5rem;"></p>
+                        </div>
+                        
+                        <div style="margin-top: 1rem;">
+                            <strong>Risultati Esami del Sangue:</strong>
+                            <p th:text="${record.bloodTestResults}" style="margin-top: 0.5rem;"></p>
+                        </div>
+                        
+                        <div style="margin-top: 1rem;" th:if="${record.additionalNotes}">
+                            <strong>Note Aggiuntive:</strong>
+                            <p th:text="${record.additionalNotes}" style="margin-top: 0.5rem;"></p>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${record.prediction}" style="min-width: 200px; text-align: right;">
+                        <h5>Predizione AI</h5>
+                        <p>
+                            <span class="badge" 
+                                  th:classappend="${record.prediction.predictedDisease.contains('Diabete') and !record.prediction.predictedDisease.contains('Nessun')} ? 'badge-danger' : 'badge-success'"
+                                  th:text="${record.prediction.predictedDisease}"></span>
+                        </p>
+                        <p>Confidenza: <strong th:text="${record.prediction.getConfidencePercentage()}"></strong></p>
+                        
+                        <div th:if="${record.prediction.review}" style="margin-top: 1rem;">
+                            <p style="color: #10b981;">✓ Revisionato</p>
+                            <p>Diagnosi confermata: 
+                                <strong th:text="${record.prediction.review.confirmedDiagnosis ? 'Sì' : 'No'}"></strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

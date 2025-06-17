@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MedAI</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="container nav-container">
+            <a href="/dashboard" class="nav-brand">MedAI</a>
+            <ul class="nav-links">
+                <li><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li><a th:href="@{/patients}">Pazienti</a></li>
+                <li><a th:href="@{/patients/new}">Nuovo Paziente</a></li>
+                <li>
+                    <span th:text="${doctor.getFullName()}"></span>
+                    <a th:href="@{/logout}" style="margin-left: 1rem;">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container" style="padding-top: 2rem;">
+        <h1>Benvenuto, Dr. <span th:text="${doctor.lastName}"></span></h1>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <h3>Totale Pazienti</h3>
+                <div class="value" th:text="${#lists.size(patients)}">0</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Predizioni in Attesa</h3>
+                <div class="value" th:text="${#lists.size(pendingPredictions)}">0</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Revisioni Completate</h3>
+                <div class="value" th:text="${#lists.size(doctorReviews)}">0</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Predizioni in Attesa di Revisione</h2>
+            </div>
+            <div th:if="${#lists.isEmpty(pendingPredictions)}">
+                <p style="color: #6b7280;">Nessuna predizione in attesa di revisione.</p>
+            </div>
+            <table class="table" th:unless="${#lists.isEmpty(pendingPredictions)}">
+                <thead>
+                    <tr>
+                        <th>Paziente</th>
+                        <th>Data Predizione</th>
+                        <th>Predizione</th>
+                        <th>Confidenza</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="prediction : ${pendingPredictions}">
+                        <td th:text="${prediction.medicalRecord.patient.firstName + ' ' + prediction.medicalRecord.patient.lastName}"></td>
+                        <td th:text="${#temporals.format(prediction.predictionDate, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${prediction.predictedDisease.contains('Diabete') and !prediction.predictedDisease.contains('Nessun')} ? 'badge-danger' : 'badge-success'"
+                                  th:text="${prediction.predictedDisease}"></span>
+                        </td>
+                        <td th:text="${prediction.getConfidencePercentage()}"></td>
+                        <td>
+                            <a th:href="@{/patients/predictions/{id}/review(id=${prediction.id})}" 
+                               class="btn btn-primary btn-sm">Revisiona</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Ultime Revisioni</h2>
+            </div>
+            <div th:if="${#lists.isEmpty(doctorReviews)}">
+                <p style="color: #6b7280;">Nessuna revisione effettuata.</p>
+            </div>
+            <table class="table" th:unless="${#lists.isEmpty(doctorReviews)}">
+                <thead>
+                    <tr>
+                        <th>Paziente</th>
+                        <th>Data Revisione</th>
+                        <th>Diagnosi Confermata</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="review : ${doctorReviews}">
+                        <td th:text="${review.prediction.medicalRecord.patient.firstName + ' ' + review.prediction.medicalRecord.patient.lastName}"></td>
+                        <td th:text="${#temporals.format(review.reviewDate, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${review.confirmedDiagnosis} ? 'badge-success' : 'badge-warning'"
+                                  th:text="${review.confirmedDiagnosis ? 'Sì' : 'No'}"></span>
+                        </td>
+                        <td th:text="${review.reviewNotes}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 

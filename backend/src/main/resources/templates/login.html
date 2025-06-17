@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MedAI</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>MedAI Login</h2>
+            
+            <div th:if="${param.error}" class="alert alert-error">
+                Email o password non validi
+            </div>
+            
+            <div th:if="${param.logout}" class="alert alert-success">
+                Logout effettuato con successo
+            </div>
+            
+            <div th:if="${param.registered}" class="alert alert-success">
+                Registrazione completata! Puoi effettuare il login
+            </div>
+            
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username" class="form-label">Email</label>
+                    <input type="email" id="username" name="username" class="form-control" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Accedi</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p>Non hai un account? <a th:href="@{/register}" style="color: var(--primary-color);">Registrati</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

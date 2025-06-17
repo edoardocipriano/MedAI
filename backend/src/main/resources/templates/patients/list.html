@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pazienti - MedAI</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="container nav-container">
+            <a href="/dashboard" class="nav-brand">MedAI</a>
+            <ul class="nav-links">
+                <li><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li><a th:href="@{/patients}" class="active">Pazienti</a></li>
+                <li><a th:href="@{/patients/new}">Nuovo Paziente</a></li>
+                <li><a th:href="@{/logout}">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container" style="padding-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Pazienti</h1>
+            <a th:href="@{/patients/new}" class="btn btn-primary">Aggiungi Paziente</a>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div class="card">
+            <div th:if="${#lists.isEmpty(patients)}">
+                <p style="color: #6b7280;">Nessun paziente registrato.</p>
+            </div>
+            
+            <table class="table" th:unless="${#lists.isEmpty(patients)}">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Cognome</th>
+                        <th>Data di Nascita</th>
+                        <th>Genere</th>
+                        <th>Codice Fiscale</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="patient : ${patients}">
+                        <td th:text="${patient.firstName}"></td>
+                        <td th:text="${patient.lastName}"></td>
+                        <td th:text="${#temporals.format(patient.dateOfBirth, 'dd/MM/yyyy')}"></td>
+                        <td th:text="${patient.gender}"></td>
+                        <td th:text="${patient.fiscalCode}"></td>
+                        <td>
+                            <a th:href="@{/patients/{id}(id=${patient.id})}" 
+                               class="btn btn-primary btn-sm">Visualizza</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 

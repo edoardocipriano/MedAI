@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuovo Paziente - MedAI</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="container nav-container">
+            <a href="/dashboard" class="nav-brand">MedAI</a>
+            <ul class="nav-links">
+                <li><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li><a th:href="@{/patients}">Pazienti</a></li>
+                <li><a th:href="@{/patients/new}" class="active">Nuovo Paziente</a></li>
+                <li><a th:href="@{/logout}">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container" style="padding-top: 2rem;">
+        <h1>Nuovo Paziente</h1>
+        
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <div class="card">
+            <form th:action="@{/patients/save}" method="post" th:object="${patient}">
+                <div class="form-group">
+                    <label for="firstName" class="form-label">Nome</label>
+                    <input type="text" id="firstName" th:field="*{firstName}" 
+                           class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName" class="form-label">Cognome</label>
+                    <input type="text" id="lastName" th:field="*{lastName}" 
+                           class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dateOfBirth" class="form-label">Data di Nascita</label>
+                    <input type="date" id="dateOfBirth" th:field="*{dateOfBirth}" 
+                           class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gender" class="form-label">Genere</label>
+                    <select id="gender" th:field="*{gender}" class="form-control" required>
+                        <option value="">Seleziona...</option>
+                        <option value="Male">Maschio</option>
+                        <option value="Female">Femmina</option>
+                        <option value="Other">Altro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fiscalCode" class="form-label">Codice Fiscale</label>
+                    <input type="text" id="fiscalCode" th:field="*{fiscalCode}" 
+                           class="form-control" pattern="[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]"
+                           title="Inserisci un codice fiscale valido" required>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary">Salva Paziente</button>
+                    <a th:href="@{/patients}" class="btn btn-secondary">Annulla</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html> 

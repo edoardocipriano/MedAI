@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuova Cartella Clinica - MedAI</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="container nav-container">
+            <a href="/dashboard" class="nav-brand">MedAI</a>
+            <ul class="nav-links">
+                <li><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li><a th:href="@{/patients}">Pazienti</a></li>
+                <li><a th:href="@{/patients/new}">Nuovo Paziente</a></li>
+                <li><a th:href="@{/logout}">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container" style="padding-top: 2rem;">
+        <h1>Nuova Cartella Clinica</h1>
+        <p>Paziente: <strong th:text="${patient.firstName + ' ' + patient.lastName}"></strong></p>
+        
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <form th:action="@{/patients/{id}/medical-record/save(id=${patient.id})}" method="post">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Informazioni Cliniche</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="symptoms" class="form-label">Sintomi</label>
+                    <textarea id="symptoms" name="symptoms" class="form-control" rows="3" required
+                              placeholder="Descrivi i sintomi del paziente..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bloodTestResults" class="form-label">Risultati Esami del Sangue</label>
+                    <textarea id="bloodTestResults" name="bloodTestResults" class="form-control" rows="3" required
+                              placeholder="Inserisci i risultati degli esami del sangue..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="additionalNotes" class="form-label">Note Aggiuntive (Opzionale)</label>
+                    <textarea id="additionalNotes" name="additionalNotes" class="form-control" rows="3"
+                              placeholder="Eventuali note aggiuntive..."></textarea>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Dati per Predizione Diabete</h2>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="hypertension" class="form-label">Ipertensione</label>
+                        <select id="hypertension" name="hypertension" class="form-control" required>
+                            <option value="0">No</option>
+                            <option value="1">Sì</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="heart_disease" class="form-label">Malattie Cardiache</label>
+                        <select id="heart_disease" name="heart_disease" class="form-control" required>
+                            <option value="0">No</option>
+                            <option value="1">Sì</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="smoking_history" class="form-label">Storia di Fumo</label>
+                        <select id="smoking_history" name="smoking_history" class="form-control" required>
+                            <option value="never">Mai fumato</option>
+                            <option value="former">Ex fumatore</option>
+                            <option value="not current">Non attualmente</option>
+                            <option value="current">Fumatore attuale</option>
+                            <option value="ever">Ha fumato</option>
+                            <option value="No Info">Nessuna informazione</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bmi" class="form-label">BMI (Indice di Massa Corporea)</label>
+                        <input type="number" id="bmi" name="bmi" class="form-control" 
+                               step="0.1" min="10" max="60" required
+                               placeholder="es. 25.5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hba1c_level" class="form-label">Livello HbA1c (%)</label>
+                        <input type="number" id="hba1c_level" name="hba1c_level" class="form-control" 
+                               step="0.1" min="3" max="15" required
+                               placeholder="es. 5.7">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="blood_glucose_level" class="form-label">Livello Glucosio nel Sangue (mg/dL)</label>
+                        <input type="number" id="blood_glucose_level" name="blood_glucose_level" class="form-control" 
+                               step="1" min="50" max="400" required
+                               placeholder="es. 126">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary">Salva e Ottieni Predizione</button>
+                <a th:href="@{/patients/{id}(id=${patient.id})}" class="btn btn-secondary">Annulla</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html> 
