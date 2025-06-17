@@ -83,6 +83,8 @@ public class PatientService {
             int age = Period.between(managedPatient.getDateOfBirth(), LocalDate.now()).getYears();
             inferenceData.setAge(age);
             inferenceData.setGender(managedPatient.getGender());
+            // NOTA: Tutti gli altri campi (hypertension, heart_disease, smoking_history, 
+            // bmi, hba1c_level, blood_glucose_level) sono già stati impostati dal form
             
             // Richiama il servizio ML per la predizione
             InferenceResponse mlResponse = mlInferenceService.predict(inferenceData);

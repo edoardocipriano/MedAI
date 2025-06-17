@@ -20,6 +20,18 @@ public class MLInferenceService {
     
     public InferenceResponse predict(InferenceRequest request) {
         try {
+            // Log per debug - stampa tutti i valori dell'InferenceRequest
+            System.out.println("=== InferenceRequest Debug ===");
+            System.out.println("Age: " + request.getAge());
+            System.out.println("Gender: " + request.getGender());
+            System.out.println("Hypertension: " + request.getHypertension());
+            System.out.println("Heart Disease: " + request.getHeart_disease());
+            System.out.println("Smoking History: " + request.getSmoking_history());
+            System.out.println("BMI: " + request.getBmi());
+            System.out.println("HbA1c Level: " + request.getHba1c_level());
+            System.out.println("Blood Glucose Level: " + request.getBlood_glucose_level());
+            System.out.println("==============================");
+            
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             
