@@ -53,8 +53,15 @@
                         <td th:text="${patient.gender}"></td>
                         <td th:text="${patient.fiscalCode}"></td>
                         <td>
-                            <a th:href="@{/patients/{id}(id=${patient.id})}" 
-                               class="btn btn-primary btn-sm">Visualizza</a>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <a th:href="@{/patients/{id}(id=${patient.id})}" 
+                                   class="btn btn-primary btn-sm">Visualizza</a>
+                                <form th:action="@{/patients/{id}/delete(id=${patient.id})}" 
+                                      method="post" 
+                                      onsubmit="return confirm('Sei sicuro di voler cancellare questo paziente? Questa azione cancellerà anche tutte le cartelle cliniche e predizioni associate.');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Cancella</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

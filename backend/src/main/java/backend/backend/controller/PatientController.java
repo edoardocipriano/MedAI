@@ -144,4 +144,27 @@ public class PatientController {
             return "redirect:/patients/predictions/" + predictionId + "/review";
         }
     }
+    
+    @PostMapping("/{id}/delete")
+    @Transactional
+    public String deletePatient(@PathVariable Long id,
+                              @AuthenticationPrincipal Doctor currentDoctor,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            Patient patient = patientService.getPatientById(id)
+                    .orElseThrow(() -> new RuntimeException("Paziente non trovato"));
+            
+            // Verifica che il paziente appartenga al medico corrente
+            if (!patient.getDoctor().getId().equals(currentDoctor.getId())) {
+                throw new RuntimeException("Non autorizzato a cancellare questo paziente");
+            }
+            
+            patientService.deletePatient(id);
+            redirectAttributes.addFlashAttribute("success", "Paziente cancellato con successo");
+            return "redirect:/patients";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Errore durante la cancellazione: " + e.getMessage());
+            return "redirect:/patients";
+        }
+    }
 } 

@@ -27,7 +27,7 @@ public class MedicalRecord {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
     
-    @OneToOne(mappedBy = "medicalRecord", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "medicalRecord", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Prediction prediction;
     
     @PrePersist
