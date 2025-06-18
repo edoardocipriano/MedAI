@@ -172,6 +172,11 @@ textarea.form-control {
     color: var(--white);
 }
 
+.btn-danger:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+}
+
 .btn-sm {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
@@ -296,6 +301,11 @@ textarea.form-control {
 .badge-danger {
     background-color: #fee2e2;
     color: #991b1b;
+}
+
+/* Action buttons */
+.table td:last-child .btn {
+    min-width: 100px;
 }
 
 /* Responsive */

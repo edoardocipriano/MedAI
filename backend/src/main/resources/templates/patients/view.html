@@ -23,7 +23,14 @@
     <div class="container" style="padding-top: 2rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <h1>Dettagli Paziente</h1>
-            <a th:href="@{/patients}" class="btn btn-secondary">Torna alla Lista</a>
+            <div style="display: flex; gap: 1rem;">
+                <a th:href="@{/patients}" class="btn btn-secondary">Torna alla Lista</a>
+                <form th:action="@{/patients/{id}/delete(id=${patient.id})}" 
+                      method="post" 
+                      onsubmit="return confirm('Sei sicuro di voler cancellare questo paziente? Questa azione cancellerà anche tutte le cartelle cliniche e predizioni associate.');">
+                    <button type="submit" class="btn btn-danger">Cancella Paziente</button>
+                </form>
+            </div>
         </div>
         
         <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
